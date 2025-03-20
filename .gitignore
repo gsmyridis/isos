@@ -1,0 +1,7 @@
+**/__pycache__
+**/.pytest_cache
+**/.python-version
+**/.venv
+**/uv.lock
+**/.ropeproject
+

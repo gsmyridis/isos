@@ -1,0 +1,19 @@
+[project]
+name = "optres"
+version = "0.1.0"
+description = "Option and Result types for Python."
+readme = "README.md"
+authors = [
+    { name = "gsmyridis", email = "georgesmyr@icloud.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
