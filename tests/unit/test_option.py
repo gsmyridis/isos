@@ -1,5 +1,5 @@
 import pytest
-from optres import Option
+from optres import Option, UnwrapError
 
 
 def test_eq():
@@ -72,10 +72,10 @@ def test_expect_unwrap():
     assert Option(10).expect("Guaranteed to be some value.") == 10
     assert Option(10).unwrap() == 10
 
-    with pytest.raises(ValueError, match="Guaranteed to be some value."):
-        _val = Option[int](None).expect("Guaranteed to be some value.")
-    with pytest.raises(ValueError, match="Cannot unwrap option that is None."):
-        _val = Option[int](None).unwrap()
+    with pytest.raises(UnwrapError, match="Guaranteed to be some value."):
+        _ = Option[int](None).expect("Guaranteed to be some value.")
+    with pytest.raises(UnwrapError, match="Cannot unwrap option that is None."):
+        _ = Option[int](None).unwrap()
 
 
 def test_unwrap_or_():
@@ -215,3 +215,11 @@ def test_zip():
     assert Option(10).zip(Option("Passed")).unwrap() == (10, "Passed")
     assert Option(10).zip(Option[str](None)).is_none()
     assert Option[int](None).zip(Option("Failed")).is_none()
+
+
+def test_pattern_matching():
+    match Option(10):
+        case Option(val):
+            assert val == 10
+        case _:
+            assert False
