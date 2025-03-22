@@ -7,7 +7,6 @@ from .error import UnwrapError
 T = TypeVar("T")
 W = TypeVar("W")
 
-
 @dataclass
 class Option(Generic[T]):
     inner: Optional[T]
@@ -219,3 +218,8 @@ class Option(Generic[T]):
             return Option((self.inner, other.inner))
         else:
             return Option(None)
+
+Null = Option(None)
+
+def Some(val: T) -> Option[T]:
+    return Option.some(val)

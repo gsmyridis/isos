@@ -1,4 +1,4 @@
-from .option import Option as Option
+from .option import Option, Some, Null
 from .error import UnwrapError
 
-__all__ = ["Option", "UnwrapError"]
+__all__ = ["Option", "Some", "Null", "UnwrapError"]

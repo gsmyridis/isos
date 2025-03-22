@@ -1,5 +1,5 @@
 import pytest
-from optres import Option, UnwrapError
+from optres import Option, UnwrapError, Null, Some
 
 
 def test_eq():
@@ -218,8 +218,14 @@ def test_zip():
 
 
 def test_pattern_matching():
-    match Option(10):
+    match Some(10):
         case Option(val):
             assert val == 10
+        case _:
+            assert False
+
+    match Null:
+        case Option(None):
+            assert True
         case _:
             assert False
