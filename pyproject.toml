@@ -17,3 +17,6 @@ build-backend = "hatchling.build"
 dev = [
     "pytest>=8.3.5",
 ]
+
+[tool.setuptools.package-data]
+"your_package" = ["py.typed"]
