@@ -1,5 +1,6 @@
+import re
 import pytest
-from optres import Option, UnwrapError, Null, Some
+from optres import Option, UnwrapError, Null, Some, UNWRAP_OPTION_MSG
 
 
 def test_eq():
@@ -69,12 +70,13 @@ def test_is_none_or():
 
 
 def test_expect_unwrap():
-    assert Option(10).expect("Guaranteed to be some value.") == 10
+    expect_msg = "Guaranteed to be some value."
+    assert Option(10).expect(expect_msg) == 10
     assert Option(10).unwrap() == 10
 
-    with pytest.raises(UnwrapError, match="Guaranteed to be some value."):
-        _ = Option[int](None).expect("Guaranteed to be some value.")
-    with pytest.raises(UnwrapError, match="Cannot unwrap option that is None."):
+    with pytest.raises(UnwrapError, match=expect_msg):
+        _ = Option[int](None).expect(expect_msg)
+    with pytest.raises(UnwrapError, match=re.escape(UNWRAP_OPTION_MSG)):
         _ = Option[int](None).unwrap()
 
 

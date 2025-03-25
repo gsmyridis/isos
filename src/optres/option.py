@@ -2,10 +2,11 @@ from __future__ import annotations
 from typing import Optional, Callable, Tuple, TypeVar, Generic
 from dataclasses import dataclass
 
-from .error import UnwrapError
+from .error import UNWRAP_OPTION_MSG, UnwrapError
 
 T = TypeVar("T")
 W = TypeVar("W")
+
 
 @dataclass
 class Option(Generic[T]):
@@ -89,7 +90,7 @@ class Option(Generic[T]):
 
     def unwrap(self) -> T:
         """Returns the contained `Some` value or raises an exception."""
-        return self.expect("Cannot unwrap option that is None.")
+        return self.expect(UNWRAP_OPTION_MSG)
 
     def unwrap_or(self, val: T) -> T:
         """Returns the contained `Some` value or a specified default value."""
