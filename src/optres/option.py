@@ -140,7 +140,9 @@ class Option(Generic[T]):
             - Some(t) if predicate returns true (where t is the wrapped value), and
             - None if predicate returns false.
         """
-        return Option(None) if (self.inner is None or not p(self.inner)) else self
+        return (
+            Option(None) if (self.inner is None or not p(self.inner)) else self
+        )
 
     def or_(self, optb: Option[T]) -> Option[T]:
         """Returns the option if it contains a value, otherwise returns optb."""

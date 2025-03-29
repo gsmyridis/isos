@@ -1,0 +1,13 @@
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+]
+
+line-length = 80
+indent-width = 4
+
+target-version = "py313"

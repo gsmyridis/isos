@@ -56,7 +56,9 @@ class Result[T]:
         else:
             return f(self.inner)
 
-    def map_or_else(self, default: Callable[[Error], U], f: Callable[[T], U]) -> U:
+    def map_or_else(
+        self, default: Callable[[Error], U], f: Callable[[T], U]
+    ) -> U:
         """
         Maps a `Result[T]` to U by applying a function to a contained Ok value,
         or a default function to an `Error` value.
