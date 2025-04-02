@@ -5,8 +5,13 @@ from dataclasses import dataclass
 class Error:
     """A class representing an error contained in a Result type."""
 
+    _msg: str = ""
+
     def get_message(self) -> str:
-        return ""
+        return self._msg
+
+    def __str__(self) -> str:
+        return self._msg
 
 
 class UnwrapError(Exception):

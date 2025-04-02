@@ -120,9 +120,9 @@ def test_map_or_else():
 
 
 def test_and():
-    assert Option(10).and_(Option(20)).unwrap() == 20
-    assert Option[int](None).and_(Option(20)).is_none()
-    assert Option(10).and_(Option(None)).is_none()
+    assert Option(10).and_option(Option(20)).unwrap() == 20
+    assert Option[int](None).and_option(Option(20)).is_none()
+    assert Option(10).and_option(Option(None)).is_none()
 
 
 def test_and_then():

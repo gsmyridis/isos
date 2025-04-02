@@ -1,14 +1,22 @@
-# `optres`
+# isos
 
-`optres` is a library that provides types that have similary API with `Rust`'s `Option<T>` and `Result<T, E>` `enum` types.
+`isos` is a Python library that introduces `Option` and `Result` types to implement the "result pattern" in your code.
 
-## `Option[T]`
+## Why Use This Pattern?
 
-`Option[T]` is a type that represents an optional value.
-It either contains a value of type `T` or it does not contain a value, in which case it is said to be `None`.
-Technically, in the latter case the contained value of the `Option[T]` is `None`.
+In traditional Python, errors are handled with exceptions. The result pattern takes a different approach by treating errors as values that can be:
 
+- Passed between functions
+- Transformed
+- Chained together
+- Explicitly handled at the appropriate point
 
-## `Result[T, E]`
+This forces developers to consciously handle non-existent values and error conditions, leading to more robust and predictable code.
 
-`Result[T, E]` is a type that represents either success (`Ok`) or failure (`Err`).
+## Core Features
+
+- **Option Type**: Explicitly represents the presence or absence of a value
+- **Result Type**: Represents either a successful value or an error value
+- **Custom Errors**: Create your own error types by subclassing the `Error` class
+
+By making errors first-class citizens in your code, `isos` helps prevent bugs that might occur from unhandled edge cases and makes your error handling strategy more transparent and systematic.

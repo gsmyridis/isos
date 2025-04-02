@@ -121,7 +121,7 @@ class Option(Generic[T]):
         """
         return d() if self.inner is None else f(self.inner)
 
-    def and_(self, optb: Option[T]) -> Option[T]:
+    def and_option(self, optb: Option[T]) -> Option[T]:
         """Returns None if the option is None, otherwise returns optb."""
         return Option(None) if self.inner is None else optb
 

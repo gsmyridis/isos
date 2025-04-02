@@ -29,22 +29,22 @@ def test_is_ok_and():
 
 
 def test_is_err():
-    assert not Result(1).is_err()
-    assert Result(Error()).is_err()
+    assert not Result(1).is_error()
+    assert Result(Error()).is_error()
 
 
 def test_is_err_and():
-    assert Result(SomeError()).is_err_and(lambda x: isinstance(x, SomeError))
-    assert not Result(SomeError()).is_err_and(
+    assert Result(SomeError()).is_error_and(lambda x: isinstance(x, SomeError))
+    assert not Result(SomeError()).is_error_and(
         lambda x: isinstance(x, OtherError)
     )
-    assert not Result(10).is_err_and(lambda x: True)
+    assert not Result(10).is_error_and(lambda x: True)
 
 
 def test_map():
     assert Result("three").map(lambda s: len(s)).unwrap() == 5
     assert (
-        Result[str](SomeError()).map(lambda s: len(s)).unwrap_err()
+        Result[str](SomeError()).map(lambda s: len(s)).unwrap_error()
         == SomeError()
     )
 
@@ -63,9 +63,9 @@ def test_map_or_else():
 
 
 def test_map_err():
-    assert Result(1).map_err(lambda e: SomeError()).unwrap() == 1
+    assert Result(1).map_error(lambda e: SomeError()).unwrap() == 1
     assert (
-        Result(SomeError()).map_err(lambda e: OtherError()).unwrap_err()
+        Result(SomeError()).map_error(lambda e: OtherError()).unwrap_error()
         == OtherError()
     )
 
@@ -84,12 +84,12 @@ def test_unwrap():
 def test_expect_err():
     msg = "Guaranteed to fail."
     with pytest.raises(UnwrapError, match=re.escape(msg)):
-        Result(1).expect_err(msg)
+        Result(1).expect_error(msg)
 
 
 def test_unwrap_err():
     with pytest.raises(UnwrapError, match=re.escape(UNWRAP_ERR_RESULT_MSG)):
-        Result(1).unwrap_err()
+        Result(1).unwrap_error()
 
 
 def test_unwrap_or():
@@ -103,13 +103,14 @@ def test_unwrap_or_else():
 
 
 def test_and():
-    assert Result(10).and_(Result("Success")).unwrap() == "Success"
-    assert Result(10).and_(Result(Error())).unwrap_err() == Error()
+    assert Result(10).and_result(Result("Success")).unwrap() == "Success"
+    assert Result(10).and_result(Result(Error())).unwrap_error() == Error()
     assert (
-        Result(SomeError()).and_(Result("Success")).unwrap_err() == SomeError()
+        Result(SomeError()).and_result(Result("Success")).unwrap_error()
+        == SomeError()
     )
     assert (
-        Result(SomeError()).and_(Result(OtherError())).unwrap_err()
+        Result(SomeError()).and_result(Result(OtherError())).unwrap_error()
         == SomeError()
     )
 
@@ -117,25 +118,27 @@ def test_and():
 def test_and_then():
     assert Result(10).and_then(lambda x: Result(x + 10)).unwrap() == 20
     assert (
-        Result(10).and_then(lambda x: Result(Error())).unwrap_err() == Error()
+        Result(10).and_then(lambda x: Result(Error())).unwrap_error() == Error()
     )
     assert (
-        Result[int](SomeError()).and_then(lambda x: Result(x + 10)).unwrap_err()
+        Result[int](SomeError())
+        .and_then(lambda x: Result(x + 10))
+        .unwrap_error()
         == SomeError()
     )
     assert (
         Result[int](SomeError())
         .and_then(lambda x: Result(OtherError()))
-        .unwrap_err()
+        .unwrap_error()
         == SomeError()
     )
 
 
 def test_or():
-    assert Result(10).or_(Result(20)).unwrap() == 10
-    assert Result[int](SomeError()).or_(Result(20)).unwrap() == 20
+    assert Result(10).or_result(Result(20)).unwrap() == 10
+    assert Result[int](SomeError()).or_result(Result(20)).unwrap() == 20
     assert (
-        Result(SomeError()).or_(Result(OtherError())).unwrap_err()
+        Result(SomeError()).or_result(Result(OtherError())).unwrap_error()
         == OtherError()
     )
 
@@ -144,6 +147,8 @@ def test_or_else():
     assert Result(10).or_else(lambda e: Result(20)).unwrap() == 10
     assert Result[int](SomeError()).or_else(lambda e: Result(20)).unwrap() == 20
     assert (
-        Result(SomeError()).or_else(lambda e: Result(OtherError())).unwrap_err()
+        Result(SomeError())
+        .or_else(lambda e: Result(OtherError()))
+        .unwrap_error()
         == OtherError()
     )

@@ -23,11 +23,11 @@ class Result[T]:
         else:
             return f(self.inner)
 
-    def is_err(self) -> bool:
+    def is_error(self) -> bool:
         """Return `True` if the result is an `Error`."""
         return not self.is_ok()
 
-    def is_err_and(self, f: Callable[[Error], bool]) -> bool:
+    def is_error_and(self, f: Callable[[Error], bool]) -> bool:
         """Returns `True` if the result is an `Err` and the value satisfies the predicate `f`."""
         if isinstance(self.inner, Error):
             return f(self.inner)
@@ -68,7 +68,7 @@ class Result[T]:
         else:
             return default(self.inner)
 
-    def map_err(self, f: Callable[[Error], Error]) -> Result[T]:
+    def map_error(self, f: Callable[[Error], Error]) -> Result[T]:
         """
         Maps a `Result[T]` to `Result[T]` by applying a function to a contained `Error` value,
         leaving an Ok value untouched.
@@ -97,7 +97,7 @@ class Result[T]:
         """
         return self.expect(UNWRAP_RESULT_MSG)
 
-    def expect_err(self, msg: str) -> Error:
+    def expect_error(self, msg: str) -> Error:
         """
         Returns the contained `Error` value. If the contained value is Ok, it throws an
         `UnwrapError` exception with the provided message.
@@ -107,12 +107,12 @@ class Result[T]:
         else:
             raise UnwrapError(msg)
 
-    def unwrap_err(self) -> Error:
+    def unwrap_error(self) -> Error:
         """
         Returns the contained `Error` value. If the contained value is Ok, it throws an
         `UnwrapError` exception.
         """
-        return self.expect_err(UNWRAP_ERR_RESULT_MSG)
+        return self.expect_error(UNWRAP_ERR_RESULT_MSG)
 
     def unwrap_or(self, default: T) -> T:
         """Returns the contained Ok value or a default value."""
@@ -128,7 +128,7 @@ class Result[T]:
         else:
             return self.inner
 
-    def and_(self, res: Result[U]) -> Result[U]:
+    def and_result(self, res: Result[U]) -> Result[U]:
         """
         Returns `res` if the result is Ok, otherwise returns the `Error` value of `self`.
         """
@@ -146,7 +146,7 @@ class Result[T]:
         else:
             return f(self.inner)
 
-    def or_(self, res: Result[T]) -> Result[T]:
+    def or_result(self, res: Result[T]) -> Result[T]:
         """
         Returns `res` if the result is an `Error`, otherwise returns the Ok value of `self`.
         """
