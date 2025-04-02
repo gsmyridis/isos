@@ -1,0 +1,148 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+a[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+b[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+
+env:
+  PACKAGE_NAME: "isos"
+  OWNER: "gsmyridis"
+
+jobs:
+  extract_details:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.extract.outputs.new_version }}
+      tag_name: ${{ steps.extract.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Extract Version from Tag
+        id: extract
+        run: |
+          if [ "${{ github.ref_type }}" != "tag" ]; then
+            echo "This workflow only runs on tag pushes."
+            exit 1
+          fi
+          # Remove the "refs/tags/" prefix from GITHUB_REF to get the tag name.
+          TAG=${GITHUB_REF#refs/tags/}
+          # Extract the version (everything before any hyphen)
+          VERSION=$(echo "$TAG" | awk -F'-' '{print $1}')
+          echo "new_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+          echo "Tag extracted: $TAG with version $VERSION"
+
+  check_pypi:
+    needs: extract_details
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify version is greater than PyPI’s latest
+        run: |
+          RESPONSE=$(curl -s "https://pypi.org/pypi/${{ env.PACKAGE_NAME }}/json" || echo "{}")
+          CURRENT_VERSION=$(echo "$RESPONSE" | jq --raw-output "select(.releases != null) | .releases | keys_unsorted | last")
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "No previous version found on PyPI. Assuming version 0.0.0"
+            CURRENT_VERSION="0.0.0"
+          fi
+          echo "Current PyPI version: $CURRENT_VERSION"
+          if [ "$(printf '%s\n' "$CURRENT_VERSION" "${{ needs.extract_details.outputs.new_version }}" | sort -rV | head -n1)" != "${{ needs.extract_details.outputs.new_version }}" ]; then
+            echo "New version ${{ needs.extract_details.outputs.new_version }} is not greater than current PyPI version $CURRENT_VERSION."
+            exit 1
+          fi
+          echo "Version check passed."
+
+  build_and_test:
+    needs: [extract_details, check_pypi]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Update version in pyproject.toml
+        run: |
+          # Replace the version line with the new version from the tag.
+          sed -i "s/^version = .*/version = \"${{ needs.extract_details.outputs.new_version }}\"/" pyproject.toml
+          grep "^version" pyproject.toml
+      - name: Install dependencies using uv
+        run: uv pip install --system -e .
+      - name: Install testing tools
+        run: uv pip install --system pytest
+      - name: Run tests
+        run: pytest
+
+  build_distributions:
+    needs: [extract_details, build_and_test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python (3.12 for building)
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Update version in pyproject.toml
+        run: |
+          sed -i "s/^version = .*/version = \"${{ needs.extract_details.outputs.new_version }}\"/" pyproject.toml
+          grep "^version" pyproject.toml
+      - name: Install build tools
+        run: uv pip install --system build
+      - name: Build distributions
+        run: python -m build
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  publish_to_pypi:
+    name: Publish to PyPI
+    needs: [build_distributions, extract_details]
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+      - name: Publish Distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  create_github_release:
+    name: Create GitHub Release
+    needs: [build_distributions, extract_details]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ needs.extract_details.outputs.tag_name }} dist/* --title "${{ needs.extract_details.outputs.tag_name }}" --generate-notes
