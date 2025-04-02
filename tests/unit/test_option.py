@@ -1,6 +1,6 @@
 import re
 import pytest
-from optres import Option, UnwrapError, Null, Some, UNWRAP_OPTION_MSG
+from isos import Option, UnwrapError, Null, Some, UNWRAP_OPTION_MSG
 
 
 def test_eq():

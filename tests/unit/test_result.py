@@ -1,6 +1,6 @@
 import re
 import pytest
-from optres import (
+from isos import (
     Result,
     Error,
     UnwrapError,
