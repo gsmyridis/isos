@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "Option and Result types for Python."
 readme = "README.md"
 authors = [{ name = "gsmyridis", email = "georgesmyr@icloud.com" }]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = []
 
 [build-system]
