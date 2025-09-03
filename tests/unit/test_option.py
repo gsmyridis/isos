@@ -7,6 +7,9 @@ def test_eq():
     assert Option(None) == Option(None)
     assert Option(10) == Option(10)
 
+    assert Some(10) == Option(10)
+    assert Null == Option(None)
+
 
 def test_neq():
     assert Option(10) != Option(20)
@@ -144,11 +147,11 @@ def test_filter():
 
 
 def test_or():
-    assert Option(10).or_(Option(20)).unwrap() == 10
-    assert Option(10).or_(Option(None)).unwrap() == 10
+    assert Option(10).or_option(Option(20)).unwrap() == 10
+    assert Option(10).or_option(Option(None)).unwrap() == 10
 
-    assert Option[int](None).or_(Option(20)).unwrap() == 20
-    assert Option[int](None).or_(Option(None)).is_none()
+    assert Option[int](None).or_option(Option(20)).unwrap() == 20
+    assert Option[int](None).or_option(Option(None)).is_none()
 
 
 def test_or_else():
@@ -231,3 +234,12 @@ def test_pattern_matching():
             assert True
         case _:
             assert False
+
+def test_get_or_insert():
+    opt = Option[int](None)
+    assert opt.get_or_insert(10) == 10
+    assert opt.unwrap() == 10
+
+    opt = Option(20)
+    assert opt.get_or_insert(30) == 20
+    assert opt.unwrap() == 20

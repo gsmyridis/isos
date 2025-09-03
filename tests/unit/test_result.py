@@ -3,6 +3,8 @@ import pytest
 from isos import (
     Result,
     Error,
+    Ok,
+    Err,
     UnwrapError,
     UNWRAP_RESULT_MSG,
     UNWRAP_ERR_RESULT_MSG,
@@ -15,6 +17,56 @@ class SomeError(Error):
 
 class OtherError(Error):
     pass
+
+
+def test_eq():
+    assert Result(10) == Result(5 + 5)
+    assert Result(SomeError()) == Result(SomeError())
+
+    assert Ok(10) == Result(10)
+    assert Err(SomeError()) == Result(SomeError())
+
+
+def test_neq():
+    assert Result(10) != Result(20)
+    assert Result(10) != Result(SomeError())
+    assert Err(SomeError()) != Err(OtherError())
+
+
+def test_less_than():
+    assert Result(10) < Result(20)
+    assert Result(SomeError()) < Result(20)
+
+    assert not Result(20) < Result(10)
+    assert not Result(10) < Result(10)
+    assert not Result(SomeError()) < Result(SomeError())
+    assert not Result(SomeError()) < Result(OtherError())
+    assert not Result(20) < Result(SomeError())
+
+
+def test_less_or_equal():
+    assert Result(10) <= Result(20)
+    assert Result(10) <= Result(10)
+    assert Result(SomeError()) <= Result(20)
+    assert Result(SomeError()) <= Result(SomeError())
+    assert not Result(SomeError()) <= Result(OtherError())
+
+
+def test_greater_than():
+    assert Result(10) > Result(0)
+    assert Result(10) > Result(SomeError())
+
+    assert not Result(10) < Result(10)
+    assert not Result(20) < Result(10)
+    assert not Result(10) < Result(SomeError())
+    assert not Result(SomeError()) < Result(SomeError())
+
+
+def test_greater_or_equal():
+    assert Result(10) >= Result(0)
+    assert Result(10) >= Result(SomeError())
+    assert Result(10) >= Result(10)
+    assert Result(SomeError()) >= Result(SomeError())
 
 
 def test_is_ok():

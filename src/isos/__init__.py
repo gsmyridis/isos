@@ -1,5 +1,5 @@
 from .option import Option, Some, Null
-from .result import Result
+from .result import Result, Ok, Err
 from .error import (
     Error,
     UnwrapError,
@@ -13,6 +13,8 @@ __all__ = [
     "Some",
     "Null",
     "Result",
+    "Ok",
+    "Err",
     "Error",
     "UnwrapError",
     "UNWRAP_OPTION_MSG",

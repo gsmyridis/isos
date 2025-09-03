@@ -12,6 +12,52 @@ U = TypeVar("U")
 class Result[T]:
     inner: Union[T, Error]
 
+    @classmethod
+    def ok(cls, val: T):
+       return cls(val)
+
+    @classmethod
+    def error(cls, error: Error):
+        return cls(error)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Result):
+            raise NotImplementedError(
+                "Comparison between Result and other types is not defined."
+            )
+        return self.inner == other.inner
+
+    def __neq__(self, other: object) -> bool:
+        return not self == other
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Result):
+            raise NotImplementedError(
+                "Comparison between Result and other types is not defined."
+            )
+
+        if isinstance(self.inner, Error) and not isinstance(other.inner, Error):
+            return True
+        elif not isinstance(self.inner, Error) and not isinstance(other.inner, Error):
+            return self.inner < other.inner
+        elif not isinstance(self.inner, Error) and isinstance(other.inner, Error):
+            return False
+        else:
+            return False
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, Result):
+            raise NotImplementedError(
+                "Comparison between Result and other types is not defined."
+            )
+        return self < other or self == other
+
+    def __gt__(self, other: object) -> bool:
+        return not self <= other
+
+    def __ge__(self, other: object) -> bool:
+        return not self < other
+
     def is_ok(self) -> bool:
         """Returns `True` if the result is an `Ok`."""
         return False if isinstance(self.inner, Error) else True
@@ -163,3 +209,11 @@ class Result[T]:
             return f(self.inner)
         else:
             return Result(self.inner)
+
+
+def Ok(val: T) -> Result[T]:
+    return Result.ok(val)
+
+
+def Err(error: Error) -> Result:
+    return Result.error(error)

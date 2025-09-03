@@ -144,7 +144,7 @@ class Option(Generic[T]):
             Option(None) if (self.inner is None or not p(self.inner)) else self
         )
 
-    def or_(self, optb: Option[T]) -> Option[T]:
+    def or_option(self, optb: Option[T]) -> Option[T]:
         """Returns the option if it contains a value, otherwise returns optb."""
         return optb if self.inner is None else self
 
@@ -171,12 +171,14 @@ class Option(Generic[T]):
             raise ValueError("Value cannot be not None.")
         self.inner = value
 
-    def get_or_insert(self, value: T) -> None:
+    def get_or_insert(self, value: T) -> T:
         """
         Inserts value into the option if it is None, then returns a mutable reference
         to the contained value.
         """
-        raise NotImplementedError("The method has not been implemented yet.")
+        if self.inner is None:
+            self.inner = value
+        return self.inner
 
     def take(self) -> Option[T]:
         """Takes the value from the option leaving None behind."""
