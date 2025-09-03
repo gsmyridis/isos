@@ -1,23 +1,27 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Error:
     """A class representing an error contained in a Result type."""
 
-    _msg: str = ""
+    msg: str = ""
 
     def get_message(self) -> str:
-        return self._msg
+        return self.msg
 
     def __str__(self) -> str:
-        return self._msg
+        return self.msg
+
+    def __repr__(self) -> str:
+        return self.msg
 
 
 class UnwrapError(Exception):
     """Exception raised when trying to unwrap an enum variant with no value."""
 
-    pass
+    def __init__(self, message: str = ""):
+        super().__init__(message)
 
 
 UNWRAP_OPTION_MSG = "Called Option.unwrap() on None."

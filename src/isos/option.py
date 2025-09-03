@@ -55,7 +55,7 @@ class Option(Generic[T]):
         return Option(None)
 
     @classmethod
-    def some(cls, val: T) -> Option[T]:
+    def Some(cls, val: T) -> Option[T]:
         return Option(val)
 
     def is_some(self) -> bool:
@@ -231,4 +231,4 @@ Null = Option(None)
 
 def Some(val: T) -> Option[T]:
     """Creates a new Option with a value."""
-    return Option.some(val)
+    return Option.Some(val)

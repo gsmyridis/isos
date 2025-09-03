@@ -3,6 +3,7 @@ from typing import TypeVar, Union, Callable
 from dataclasses import dataclass
 
 from .error import UNWRAP_RESULT_MSG, UNWRAP_ERR_RESULT_MSG, UnwrapError, Error
+from .option import Option, Some, Null
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -13,11 +14,11 @@ class Result[T]:
     inner: Union[T, Error]
 
     @classmethod
-    def ok(cls, val: T):
+    def Ok(cls, val: T):
         return cls(val)
 
     @classmethod
-    def error(cls, error: Error):
+    def Err(cls, error: Error):
         return cls(error)
 
     def __eq__(self, other: object) -> bool:
@@ -83,6 +84,26 @@ class Result[T]:
             return f(self.inner)
         else:
             return False
+
+    def ok(self) -> Option[T]:
+        """
+        Converts from Result[T, E] to Option[T].
+        Converts self into an Option[T], and discarding the error, if any.
+        """
+        if isinstance(self.inner, Error):
+            return Null
+        else:
+            return Some(self.inner)
+
+    def error(self) -> Option[T]:
+        """
+        Converts from Result[T, E] to Option[E].
+        Converts self into an Option[E] and discarding the success value, if any.
+        """
+        if isinstance(self.inner, Error):
+            return Option(self.inner)
+        else:
+            return Null
 
     def map(self, f: Callable[[T], U]) -> Result[U]:
         """
@@ -216,8 +237,8 @@ class Result[T]:
 
 
 def Ok(val: T) -> Result[T]:
-    return Result.ok(val)
+    return Result.Ok(val)
 
 
 def Err(error: Error) -> Result:
-    return Result.error(error)
+    return Result.Err(error)

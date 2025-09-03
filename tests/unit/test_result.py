@@ -1,6 +1,7 @@
 import re
 import pytest
 from isos import (
+    Option,
     Result,
     Error,
     Ok,
@@ -91,6 +92,16 @@ def test_is_err_and():
         lambda x: isinstance(x, OtherError)
     )
     assert not Result(10).is_error_and(lambda x: True)
+
+
+def test_ok():
+    assert Result(SomeError()).ok().is_none()
+    assert Result(10).ok() == Option(10)
+
+
+def test_error():
+    assert Result(SomeError()).error() == Option.Some(SomeError())
+    assert Result(10).error() == Option.none()
 
 
 def test_map():

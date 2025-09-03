@@ -54,7 +54,7 @@ def test_option_is_none():
     assert Option.none().is_none()
     assert Option(None).is_none()
 
-    assert Option.some(10).is_some()
+    assert Option.Some(10).is_some()
     assert Option(10).is_some()
 
 
