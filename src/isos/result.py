@@ -14,7 +14,7 @@ class Result[T]:
 
     @classmethod
     def ok(cls, val: T):
-       return cls(val)
+        return cls(val)
 
     @classmethod
     def error(cls, error: Error):
@@ -38,9 +38,13 @@ class Result[T]:
 
         if isinstance(self.inner, Error) and not isinstance(other.inner, Error):
             return True
-        elif not isinstance(self.inner, Error) and not isinstance(other.inner, Error):
+        elif not isinstance(self.inner, Error) and not isinstance(
+            other.inner, Error
+        ):
             return self.inner < other.inner
-        elif not isinstance(self.inner, Error) and isinstance(other.inner, Error):
+        elif not isinstance(self.inner, Error) and isinstance(
+            other.inner, Error
+        ):
             return False
         else:
             return False

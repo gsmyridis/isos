@@ -235,6 +235,7 @@ def test_pattern_matching():
         case _:
             assert False
 
+
 def test_get_or_insert():
     opt = Option[int](None)
     assert opt.get_or_insert(10) == 10
