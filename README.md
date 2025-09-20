@@ -49,11 +49,11 @@ from isos import Ok, Err, Error
 
 # Define a custom error
 class DivisionByZero(Error):
-    msg =
+    MESSAGE = "Cannot divide by zero"
 
 def safe_divide(a: float, b: float):
     if b == 0:
-        return Err(DivisionByZero("Cannot divide by zero"))
+        return Err(DivisionByZero())
     return Ok(a / b)
 
 result = safe_divide(10, 2)
