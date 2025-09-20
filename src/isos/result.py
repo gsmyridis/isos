@@ -34,7 +34,7 @@ class Result(ABC, Generic[T]):
 
     def greater_than_unsafe(self, other: Result[T]) -> bool:
         """
-        Return True if this Option is strictly greater than `other`.
+        Return True if this Result is strictly greater than `other`.
 
         This method is *unsafe* in the sense that it assumes the contained
         values (for `Ok`) are mutually comparable via the `<` operator.
@@ -43,7 +43,7 @@ class Result(ABC, Generic[T]):
 
     def greater_or_equal_unsafe(self, other: Result[T]) -> bool:
         """
-        Return True if this Option is greater or equal to `other`.
+        Return True if this Result is greater or equal to `other`.
 
         This method is *unsafe* in the sense that it assumes the contained
         values (for `Ok`) are mutually comparable via the `<` operator.
