@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 
 
 @dataclass(frozen=True)
@@ -10,10 +11,8 @@ class Error:
     def get_message(self) -> str:
         return self.msg
 
+    @override
     def __str__(self) -> str:
-        return self.msg
-
-    def __repr__(self) -> str:
         return self.msg
 
 

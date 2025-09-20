@@ -1,110 +1,91 @@
 from __future__ import annotations
-from typing import TypeVar, Union, Callable
+from typing import TypeVar, Callable, Generic, override, cast
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 from .error import UNWRAP_RESULT_MSG, UNWRAP_ERR_RESULT_MSG, UnwrapError, Error
 from .option import Option, Some, Null
+from .util import Ord
 
 T = TypeVar("T")
 U = TypeVar("U")
 
 
 @dataclass
-class Result[T]:
-    inner: Union[T, Error]
+class Result(ABC, Generic[T]):
+    @abstractmethod
+    def less_than_unsafe(self, other: Result[T]) -> bool:
+        """
+        Return True if this Result is strictly less than `other`.
 
-    @classmethod
-    def Ok(cls, val: T):
-        return cls(val)
+        This method is *unsafe* in the sense that it assumes the contained
+        values (for `Ok`) are mutually comparable via the `<` operator.
+        """
+        raise NotImplementedError("The method is not implemented")
 
-    @classmethod
-    def Err(cls, error: Error):
-        return cls(error)
+    def less_or_equal_unsafe(self, other: Result[T]) -> bool:
+        """
+        Return True if this Result is less than or equal to `other`.
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Result):
-            raise NotImplementedError(
-                "Comparison between Result and other types is not defined."
-            )
-        return self.inner == other.inner
+        This method is *unsafe* in the sense that it assumes the contained
+        values (for `Ok`) are mutually comparable via the `<` operator.
+        """
+        return self.less_than_unsafe(other) or self == other
 
-    def __neq__(self, other: object) -> bool:
-        return not self == other
+    def greater_than_unsafe(self, other: Result[T]) -> bool:
+        """
+        Return True if this Option is strictly greater than `other`.
 
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Result):
-            raise NotImplementedError(
-                "Comparison between Result and other types is not defined."
-            )
+        This method is *unsafe* in the sense that it assumes the contained
+        values (for `Ok`) are mutually comparable via the `<` operator.
+        """
+        return not self.less_or_equal_unsafe(other)
 
-        if isinstance(self.inner, Error) and not isinstance(other.inner, Error):
-            return True
-        elif not isinstance(self.inner, Error) and not isinstance(
-            other.inner, Error
-        ):
-            return self.inner < other.inner
-        elif not isinstance(self.inner, Error) and isinstance(
-            other.inner, Error
-        ):
-            return False
-        else:
-            return False
+    def greater_or_equal_unsafe(self, other: Result[T]) -> bool:
+        """
+        Return True if this Option is greater or equal to `other`.
 
-    def __le__(self, other: object) -> bool:
-        if not isinstance(other, Result):
-            raise NotImplementedError(
-                "Comparison between Result and other types is not defined."
-            )
-        return self < other or self == other
+        This method is *unsafe* in the sense that it assumes the contained
+        values (for `Ok`) are mutually comparable via the `<` operator.
+        """
+        return not self.less_than_unsafe(other)
 
-    def __gt__(self, other: object) -> bool:
-        return not self <= other
-
-    def __ge__(self, other: object) -> bool:
-        return not self < other
-
+    @abstractmethod
     def is_ok(self) -> bool:
         """Returns `True` if the result is an `Ok`."""
-        return False if isinstance(self.inner, Error) else True
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def is_ok_and(self, f: Callable[[T], bool]) -> bool:
         """Returns `True` if the result is an `Ok` and the value satisfies the predicate `f`."""
-        if isinstance(self.inner, Error):
-            return False
-        else:
-            return f(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
     def is_error(self) -> bool:
         """Return `True` if the result is an `Error`."""
         return not self.is_ok()
 
+    @abstractmethod
     def is_error_and(self, f: Callable[[Error], bool]) -> bool:
         """Returns `True` if the result is an `Err` and the value satisfies the predicate `f`."""
-        if isinstance(self.inner, Error):
-            return f(self.inner)
-        else:
-            return False
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def ok(self) -> Option[T]:
         """
         Converts from Result[T, E] to Option[T].
         Converts self into an Option[T], and discarding the error, if any.
         """
-        if isinstance(self.inner, Error):
-            return Null
-        else:
-            return Some(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
-    def error(self) -> Option[T]:
+    @abstractmethod
+    def error(self) -> Option[Error]:
         """
         Converts from Result[T, E] to Option[E].
         Converts self into an Option[E] and discarding the success value, if any.
         """
-        if isinstance(self.inner, Error):
-            return Option(self.inner)
-        else:
-            return Null
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def map(self, f: Callable[[T], U]) -> Result[U]:
         """
         Maps a `Result[T]` to `Result[U]` by applying a function to a contained Ok value,
@@ -112,21 +93,17 @@ class Result[T]:
 
         This function can be used to compose the results of two functions.
         """
-        if not isinstance(self.inner, Error):
-            return Result(f(self.inner))
-        else:
-            return Result(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def map_or(self, default: U, f: Callable[[T], U]) -> U:
         """
         Maps a `Result[T]` to `U` by applying a function to a contained Ok value,
         or a default function to an `Error` value.
         """
-        if isinstance(self.inner, Error):
-            return default
-        else:
-            return f(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def map_or_else(
         self, default: Callable[[Error], U], f: Callable[[T], U]
     ) -> U:
@@ -134,11 +111,9 @@ class Result[T]:
         Maps a `Result[T]` to U by applying a function to a contained Ok value,
         or a default function to an `Error` value.
         """
-        if not isinstance(self.inner, Error):
-            return f(self.inner)
-        else:
-            return default(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def map_error(self, f: Callable[[Error], Error]) -> Result[T]:
         """
         Maps a `Result[T]` to `Result[T]` by applying a function to a contained `Error` value,
@@ -146,20 +121,15 @@ class Result[T]:
 
         This function can be used to pass through a successful result while handling an error.
         """
-        if isinstance(self.inner, Error):
-            return Result(f(self.inner))
-        else:
-            return Result(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def expect(self, msg: str) -> T:
         """
         Returns the contained Ok value. If the contained value is `Error`, it throws an
         `UnwrapError` exception with the provided message.
         """
-        if isinstance(self.inner, Error):
-            raise UnwrapError(msg)
-        else:
-            return self.inner
+        raise NotImplementedError("The method is not implemented")
 
     def unwrap(self) -> T:
         """
@@ -168,15 +138,13 @@ class Result[T]:
         """
         return self.expect(UNWRAP_RESULT_MSG)
 
+    @abstractmethod
     def expect_error(self, msg: str) -> Error:
         """
         Returns the contained `Error` value. If the contained value is Ok, it throws an
         `UnwrapError` exception with the provided message.
         """
-        if isinstance(self.inner, Error):
-            return self.inner
-        else:
-            raise UnwrapError(msg)
+        raise NotImplementedError("The method is not implemented")
 
     def unwrap_error(self) -> Error:
         """
@@ -185,60 +153,221 @@ class Result[T]:
         """
         return self.expect_error(UNWRAP_ERR_RESULT_MSG)
 
+    @abstractmethod
     def unwrap_or(self, default: T) -> T:
         """Returns the contained Ok value or a default value."""
-        if isinstance(self.inner, Error):
-            return default
-        else:
-            return self.inner
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def unwrap_or_else(self, f: Callable[[Error], T]) -> T:
         """Returns the contained Ok value or it computes it with a function."""
-        if isinstance(self.inner, Error):
-            return f(self.inner)
-        else:
-            return self.inner
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def and_result(self, res: Result[U]) -> Result[U]:
         """
         Returns `res` if the result is Ok, otherwise returns the `Error` value of `self`.
         """
-        if isinstance(self.inner, Error):
-            return Result(self.inner)
-        else:
-            return res
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def and_then(self, f: Callable[[T], Result[U]]) -> Result[U]:
         """
         Calls `f` if the result is Ok, otherwise returns the `Error` value of `self`.
         """
-        if isinstance(self.inner, Error):
-            return Result(self.inner)
-        else:
-            return f(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def or_result(self, res: Result[T]) -> Result[T]:
         """
         Returns `res` if the result is an `Error`, otherwise returns the Ok value of `self`.
         """
-        if isinstance(self.inner, Error):
-            return res
-        else:
-            return Result(self.inner)
+        raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def or_else(self, f: Callable[[Error], Result[T]]) -> Result[T]:
         """
         Calls `f` if the result is an `Error`, otherwise returns the Ok value of `self`.
         """
-        if isinstance(self.inner, Error):
-            return f(self.inner)
+        raise NotImplementedError("The method is not implemented")
+
+
+@dataclass
+class Ok(Result[T]):
+    inner: T
+
+    @override
+    def less_than_unsafe(self, other: Result[T]) -> bool:
+        if not isinstance(other, Ok) and not isinstance(other, Err):
+            raise NotImplementedError(
+                "Comparison between Result and other types is not defined."
+            )
+        if isinstance(other, Err):
+            return False
+        if isinstance(self.inner, Ord) and isinstance(other.inner, Ord):
+            return self.inner < other.inner
         else:
-            return Result(self.inner)
+            raise TypeError(f"{T} does not implement __lt__.")
+
+    @override
+    def is_ok(self) -> bool:
+        return True
+
+    @override
+    def is_ok_and(self, f: Callable[[T], bool]) -> bool:
+        return f(self.inner)
+
+    @override
+    def is_error_and(self, f: Callable[[Error], bool]) -> bool:
+        return False
+
+    @override
+    def ok(self) -> Option[T]:
+        return Some(self.inner)
+
+    @override
+    def error(self) -> Option[Error]:
+        return Null()
+
+    @override
+    def map(self, f: Callable[[T], U]) -> Result[U]:
+        return Ok(f(self.inner))
+
+    @override
+    def map_or(self, default: U, f: Callable[[T], U]) -> U:
+        return f(self.inner)
+
+    @override
+    def map_or_else(
+        self, default: Callable[[Error], U], f: Callable[[T], U]
+    ) -> U:
+        return f(self.inner)
+
+    @override
+    def map_error(self, f: Callable[[Error], Error]) -> Result[T]:
+        return self
+
+    @override
+    def expect(self, msg: str) -> T:
+        return self.inner
+
+    @override
+    def expect_error(self, msg: str) -> Error:
+        raise UnwrapError(msg)
+
+    @override
+    def unwrap_or(self, default: T) -> T:
+        return self.inner
+
+    @override
+    def unwrap_or_else(self, f: Callable[[Error], T]) -> T:
+        return self.inner
+
+    @override
+    def and_result(self, res: Result[U]) -> Result[U]:
+        return res
+
+    @override
+    def and_then(self, f: Callable[[T], Result[U]]) -> Result[U]:
+        return f(self.inner)
+
+    @override
+    def or_result(self, res: Result[T]) -> Result[T]:
+        return self
+
+    @override
+    def or_else(self, f: Callable[[Error], Result[T]]) -> Result[T]:
+        return self
 
 
-def Ok(val: T) -> Result[T]:
-    return Result.Ok(val)
+@dataclass
+class Err(Result[T]):
+    inner: Error
 
+    @override
+    def less_than_unsafe(self, other: object) -> bool:
+        if not isinstance(other, Result):
+            raise NotImplementedError(
+                "Comparison between Result and other types is not defined."
+            )
+        return isinstance(other, Ok)
 
-def Err(error: Error) -> Result:
-    return Result.Err(error)
+    @override
+    def is_ok(self) -> bool:
+        return False
+
+    @override
+    def is_ok_and(self, f: Callable[[T], bool]) -> bool:
+        return False
+
+    @override
+    def is_error_and(self, f: Callable[[Error], bool]) -> bool:
+        return f(self.inner)
+
+    @override
+    def ok(self) -> Option[T]:
+        return Null()
+
+    @override
+    def error(self) -> Option[Error]:
+        return Some(self.inner)
+
+    @override
+    def map(self, f: Callable[[T], U]) -> Result[U]:
+        return cast(Err[U], self)
+
+    @override
+    def map_or(self, default: U, f: Callable[[T], U]) -> U:
+        """
+        Maps a `Result[T]` to `U` by applying a function to a contained Ok value,
+        or a default function to an `Error` value.
+        """
+        return default
+
+    @override
+    def map_or_else(
+        self, default: Callable[[Error], U], f: Callable[[T], U]
+    ) -> U:
+        return default(self.inner)
+
+    @override
+    def map_error(self, f: Callable[[Error], Error]) -> Result[T]:
+        return Err(f(self.inner))
+
+    @override
+    def expect(self, msg: str) -> T:
+        raise UnwrapError(msg)
+
+    @override
+    def expect_error(self, msg: str) -> Error:
+        """
+        Returns the contained `Error` value. If the contained value is Ok, it throws an
+        `UnwrapError` exception with the provided message.
+        """
+        return self.inner
+
+    @override
+    def unwrap_or(self, default: T) -> T:
+        """Returns the contained Ok value or a default value."""
+        return default
+
+    @override
+    def unwrap_or_else(self, f: Callable[[Error], T]) -> T:
+        """Returns the contained Ok value or it computes it with a function."""
+        return f(self.inner)
+
+    @override
+    def and_result(self, res: Result[U]) -> Result[U]:
+        return cast(Err[U], self)
+
+    @override
+    def and_then(self, f: Callable[[T], Result[U]]) -> Result[U]:
+        return cast(Err[U], self)
+
+    @override
+    def or_result(self, res: Result[T]) -> Result[T]:
+        return res
+
+    @override
+    def or_else(self, f: Callable[[Error], Result[T]]) -> Result[T]:
+        return f(self.inner)
