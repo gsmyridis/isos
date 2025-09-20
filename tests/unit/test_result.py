@@ -1,5 +1,6 @@
 import re
 import pytest
+from typing import ClassVar
 from isos import (
     Some,
     Null,
@@ -13,11 +14,11 @@ from isos import (
 
 
 class SomeError(Error):
-    pass
+    MESSAGE: ClassVar[str] = "This is some error."
 
 
 class OtherError(Error):
-    pass
+    MESSAGE: ClassVar[str] = "This is other error."
 
 
 def test_eq():
@@ -137,7 +138,10 @@ def test_expect():
 
 
 def test_unwrap():
-    with pytest.raises(UnwrapError, match=re.escape(UNWRAP_RESULT_MSG)):
+    with pytest.raises(
+        UnwrapError,
+        match=re.escape(f"{UNWRAP_RESULT_MSG}: {SomeError.MESSAGE}"),
+    ):
         Err(SomeError()).unwrap()
 
 

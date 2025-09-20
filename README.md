@@ -1,22 +1,73 @@
 # isos
 
-`isos` is a Python library that introduces `Option` and `Result` types to implement the "result pattern" in your code.
+`isos` is a lightweight Python library that brings the Result Pattern to your code.
+It introduces two core types — Option and Result — to make handling missing values and errors explicit, safe, and expressive.
 
-## Why Use This Pattern?
+## Why use the Result pattern?
 
-In traditional Python, errors are handled with exceptions. The result pattern takes a different approach by treating errors as values that can be:
+In Python, a function can return `Optional[T]` — either a value of type `T` or `None`.
+But unless you enforce strict type checking, there’s no clear indication that the value may be absent.
+This often leads to `AttributeError` or `TypeError` when `None` sneaks through.
 
-- Passed between functions
-- Transformed
-- Chained together
-- Explicitly handled at the appropriate point
+Similarly, Python uses exceptions to signal errors, but you don’t always know when a function might raise one.
+You either have to read the source or wrap everything in a `try/except`.
 
-This forces developers to consciously handle non-existent values and error conditions, leading to more robust and predictable code.
+By returning a `Result` or `Option` instead, you:
 
-## Core Features
+- Make absence and errors visible in the type system.
+- Force explicit handling of failure cases.
+- Pass, transform, and compose results safely.
+- Write code that is more predictable, robust, and self-documenting.
 
-- **Option Type**: Explicitly represents the presence or absence of a value
-- **Result Type**: Represents either a successful value or an error value
-- **Custom Errors**: Create your own error types by subclassing the `Error` class
+## Examples
 
-By making errors first-class citizens in your code, `isos` helps prevent bugs that might occur from unhandled edge cases and makes your error handling strategy more transparent and systematic.
+### Option
+
+```Python
+from isos import Some, Null
+
+def find_user(user_id: int):
+    users = {1: "Alice", 2: "Bob"}
+    return Some(users[user_id]) if user_id in users else Null
+
+# Handling the result:
+user = find_user(1)
+if user.is_some():
+    print(f"Found user: {user.unwrap()}")
+else:
+    print("User not found")
+
+# You can also provide a default:
+name = find_user(42).unwrap_or("Guest")
+print(name)  # -> "Guest"
+```
+
+### Result
+
+```Python
+from isos import Ok, Err, Error
+
+# Define a custom error
+class DivisionByZero(Error):
+    msg =
+
+def safe_divide(a: float, b: float):
+    if b == 0:
+        return Err(DivisionByZero("Cannot divide by zero"))
+    return Ok(a / b)
+
+result = safe_divide(10, 2)
+
+if result.is_ok():
+    print(f"Result is {result.unwrap()}")
+else:
+    print(f"Error: {result.unwrap_err()}")
+
+# Transforming results
+result = safe_divide(10, 0).map(lambda x: x * 2)
+# Still Err(DivisionByZero)
+
+# Chaining
+result = safe_divide(20, 2).and_then(lambda x: safe_divide(x, 2))
+print(result)  # -> Ok(5.0)
+```

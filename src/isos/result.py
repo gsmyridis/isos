@@ -131,12 +131,13 @@ class Result(ABC, Generic[T]):
         """
         raise NotImplementedError("The method is not implemented")
 
+    @abstractmethod
     def unwrap(self) -> T:
         """
         Returns the contained Ok value. If the contained value is `Error`, it throws an
         `UnwrapError` exception.
         """
-        return self.expect(UNWRAP_RESULT_MSG)
+        raise NotImplementedError("The method is not implemented")
 
     @abstractmethod
     def expect_error(self, msg: str) -> Error:
@@ -252,6 +253,10 @@ class Ok(Result[T]):
         return self.inner
 
     @override
+    def unwrap(self) -> T:
+        return self.inner
+
+    @override
     def expect_error(self, msg: str) -> Error:
         raise UnwrapError(msg)
 
@@ -318,10 +323,6 @@ class Err(Result[T]):
 
     @override
     def map_or(self, default: U, f: Callable[[T], U]) -> U:
-        """
-        Maps a `Result[T]` to `U` by applying a function to a contained Ok value,
-        or a default function to an `Error` value.
-        """
         return default
 
     @override
@@ -340,20 +341,19 @@ class Err(Result[T]):
 
     @override
     def expect_error(self, msg: str) -> Error:
-        """
-        Returns the contained `Error` value. If the contained value is Ok, it throws an
-        `UnwrapError` exception with the provided message.
-        """
         return self.inner
 
     @override
+    def unwrap(self) -> T:
+        msg = f"{UNWRAP_RESULT_MSG}: {self.inner.MESSAGE}"
+        raise UnwrapError(msg)
+
+    @override
     def unwrap_or(self, default: T) -> T:
-        """Returns the contained Ok value or a default value."""
         return default
 
     @override
     def unwrap_or_else(self, f: Callable[[Error], T]) -> T:
-        """Returns the contained Ok value or it computes it with a function."""
         return f(self.inner)
 
     @override

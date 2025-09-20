@@ -1,19 +1,12 @@
 from dataclasses import dataclass
-from typing import override
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
 class Error:
     """A class representing an error contained in a Result type."""
 
-    msg: str = ""
-
-    def get_message(self) -> str:
-        return self.msg
-
-    @override
-    def __str__(self) -> str:
-        return self.msg
+    MESSAGE: ClassVar[str]
 
 
 class UnwrapError(Exception):
