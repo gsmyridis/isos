@@ -3,9 +3,9 @@ from typing import TypeVar, Callable, Generic, override, cast
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from .error import UNWRAP_RESULT_MSG, UNWRAP_ERR_RESULT_MSG, UnwrapError, Error
-from .option import Option, Some, Null
-from .util import Ord
+from ._error import UNWRAP_RESULT_MSG, UNWRAP_ERR_RESULT_MSG, UnwrapError, Error
+from ._option import Option, Some, Null
+from ._util import Ord
 
 T = TypeVar("T")
 U = TypeVar("U")

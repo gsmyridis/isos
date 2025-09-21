@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, TypeVar, Generic, override, final
 
-from .error import UNWRAP_OPTION_MSG, UnwrapError
-from .util import Ord
+from ._error import UNWRAP_OPTION_MSG, UnwrapError
+from ._util import Ord
 
 T = TypeVar("T")
 W = TypeVar("W")

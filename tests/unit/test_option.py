@@ -171,8 +171,9 @@ def test_zip():
 
 
 def test_pattern_matching():
-    match Some([10]):
-        case Some([val]):
+    match Some([10, 11, 12]):
+        case Some([val, *rest]):
             assert val == 10
+            assert rest == [11, 12]
         case Some(val):
-            assert False
+            assert False  # Should not reach this

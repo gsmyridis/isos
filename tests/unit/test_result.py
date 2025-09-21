@@ -11,10 +11,11 @@ from isos import (
     UNWRAP_RESULT_MSG,
     UNWRAP_ERR_RESULT_MSG,
 )
+from isos._error import error
 
 
-class SomeError(Error):
-    MESSAGE: ClassVar[str] = "This is some error."
+@error(message="This is some error.")
+class SomeError: ...
 
 
 class OtherError(Error):

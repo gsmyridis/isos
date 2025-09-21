@@ -1,6 +1,7 @@
-from .option import Option, Some, Null
-from .result import Result, Ok, Err
-from .error import (
+from ._option import Option, Some, Null
+from ._result import Result, Ok, Err
+from ._error import (
+    error,
     Error,
     UnwrapError,
     UNWRAP_OPTION_MSG,
@@ -15,6 +16,7 @@ __all__ = [
     "Result",
     "Ok",
     "Err",
+    "error",
     "Error",
     "UnwrapError",
     "UNWRAP_OPTION_MSG",
