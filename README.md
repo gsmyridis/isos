@@ -110,3 +110,37 @@ def handle_division(result: Result[float]) -> str:
 print(handle_division(safe_divide(10, 2)))  # -> "Success: 5.0"
 print(handle_division(safe_divide(1, 0)))   # -> "Failed: Cannot divide by zero"
 ```
+
+### Comparison Methods
+
+`isos` does not implement the standard comparison operators (`<`, `<=`, `>`, `>=`) for `Option[T]` and `Result[T]` types
+This is because the contained values (`T`) might not always implement these operators, which could lead to runtime errors.
+
+Instead, `isos` provides explicit "unsafe" comparison methods:
+
+```Python
+from isos import Some, Null, Ok, Err
+
+# Option comparisons
+assert Some(10).less_than_unsafe(Some(20))  # True
+assert Null().less_than_unsafe(Some(10))    # True - Null is always less than Some
+assert Some(20).less_than_unsafe(Some(10))  # False
+
+# Result comparisons
+result1 = safe_divide(10, 2)  # Ok(5.0)
+result2 = safe_divide(20, 2)  # Ok(10.0)
+assert result1.less_than_unsafe(result2)    # True
+assert not result2.less_than_unsafe(result1)  # False
+
+# Other comparison methods
+assert Some(10).less_or_equal_unsafe(Some(10))
+assert Some(10).greater_than_unsafe(Some(5))
+assert Some(10).greater_or_equal_unsafe(Some(10))
+```
+
+These methods are marked as "unsafe" because they require the contained values to implement the `<` operator. If you try to compare values that don't support comparison, you'll get a `TypeError`:
+
+```Python
+# This will raise TypeError because complex numbers don't support < operator
+Some(1+2j).less_than_unsafe(Some(2+3j))
+```
