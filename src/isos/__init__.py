@@ -8,6 +8,7 @@ from ._error import (
     UNWRAP_RESULT_MSG,
     UNWRAP_ERR_RESULT_MSG,
 )
+from ._util import NotComparableError
 
 __all__ = [
     "Option",
@@ -22,4 +23,5 @@ __all__ = [
     "UNWRAP_OPTION_MSG",
     "UNWRAP_RESULT_MSG",
     "UNWRAP_ERR_RESULT_MSG",
+    "NotComparableError",
 ]

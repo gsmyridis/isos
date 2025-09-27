@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from ._error import UNWRAP_RESULT_MSG, UNWRAP_ERR_RESULT_MSG, UnwrapError, Error
 from ._option import Option, Some, Null
-from ._util import Ord
+from ._util import Ord, NotComparableError
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -13,8 +13,56 @@ U = TypeVar("U")
 
 @dataclass
 class Result(ABC, Generic[T]):
+    def less_than(self, other: Result[U]) -> Result[bool]:
+        """
+        Return True if this Result is strictly less than `other`.
+        If the contained values (for `Ok`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        try:
+            is_less = self.less_than_unsafe(other)
+            return Ok(is_less)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def less_or_equal(self, other: Result[U]) -> Result[bool]:
+        """
+        Return True if this Result is less than or equal to `other`.
+        If the contained values (for `Ok`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        try:
+            is_less_or_equal = self.less_or_equal_unsafe(other)
+            return Ok(is_less_or_equal)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def greater_than(self, other: Result[U]) -> Result[bool]:
+        """
+        Return True if this Result is strictly greater than `other`.
+        If the contained values (for `Ok`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        try:
+            is_greater = self.greater_than_unsafe(other)
+            return Ok(is_greater)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def greater_or_equal(self, other: Result[U]) -> Result[bool]:
+        """
+        Return True if this Result is greater than or equal to `other`.
+        If the contained values (for `Ok`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        try:
+            is_greater_or_equal = self.greater_or_equal_unsafe(other)
+            return Ok(is_greater_or_equal)
+        except Exception as _:
+            return Err(NotComparableError())
+
     @abstractmethod
-    def less_than_unsafe(self, other: Result[T]) -> bool:
+    def less_than_unsafe(self, other: Result[U]) -> bool:
         """
         Return True if this Result is strictly less than `other`.
 
@@ -23,7 +71,7 @@ class Result(ABC, Generic[T]):
         """
         raise NotImplementedError("The method is not implemented")
 
-    def less_or_equal_unsafe(self, other: Result[T]) -> bool:
+    def less_or_equal_unsafe(self, other: Result[U]) -> bool:
         """
         Return True if this Result is less than or equal to `other`.
 
@@ -32,7 +80,7 @@ class Result(ABC, Generic[T]):
         """
         return self.less_than_unsafe(other) or self == other
 
-    def greater_than_unsafe(self, other: Result[T]) -> bool:
+    def greater_than_unsafe(self, other: Result[U]) -> bool:
         """
         Return True if this Result is strictly greater than `other`.
 
@@ -41,7 +89,7 @@ class Result(ABC, Generic[T]):
         """
         return not self.less_or_equal_unsafe(other)
 
-    def greater_or_equal_unsafe(self, other: Result[T]) -> bool:
+    def greater_or_equal_unsafe(self, other: Result[U]) -> bool:
         """
         Return True if this Result is greater or equal to `other`.
 
@@ -198,7 +246,7 @@ class Ok(Result[T]):
     inner: T
 
     @override
-    def less_than_unsafe(self, other: Result[T]) -> bool:
+    def less_than_unsafe(self, other: Result[U]) -> bool:
         if not isinstance(other, Ok) and not isinstance(other, Err):
             raise NotImplementedError(
                 "Comparison between Result and other types is not defined."

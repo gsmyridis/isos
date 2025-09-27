@@ -1,7 +1,8 @@
 # isos
 
 `isos` is a lightweight Python library that brings the Result Pattern to your code.
-It introduces two core types — Option and Result — which behave as sum types (also known as tagged unions or discriminated unions) that make handling missing values and errors explicit, safe, and expressive.
+It introduces two core types — Option and Result — which are intended to **behave** as sum types (also known as tagged unions or discriminated unions) that make handling missing values and errors explicit, safe, and expressive.
+They **are** not sum types.
 
 Sum types allow you to represent values that can be one of several variants, where each variant can hold different types of data. This is particularly useful for modeling scenarios where a value can be in different states, like presence/absence (Option) or success/failure (Result).
 
@@ -51,11 +52,9 @@ from isos import Ok, Err, Error, Result
 from typing import final
 
 # Define a custom error
-@final
-class DivisionByZero(Error):
-    MESSAGE = "Cannot divide by zero"
+@error("Cannot divide by zero")
+class DivisionByZero(Error): ...
 
-def safe_divide(a: float, b: float) -> Result[float]:
 def safe_divide(a: float, b: float) -> Result[float]:
     if b == 0:
         return Err(DivisionByZero())
@@ -116,7 +115,33 @@ print(handle_division(safe_divide(1, 0)))   # -> "Failed: Cannot divide by zero"
 `isos` does not implement the standard comparison operators (`<`, `<=`, `>`, `>=`) for `Option[T]` and `Result[T]` types
 This is because the contained values (`T`) might not always implement these operators, which could lead to runtime errors.
 
-Instead, `isos` provides explicit "unsafe" comparison methods:
+Instead `isos` provides explicit safe comparison methods that return `Result[bool]` based on whether the
+contained values are comparable.
+If they are not, the comparison returns `Err(NotComparableError())`.
+
+```Python
+from isos import Some, Ok, Err, NotComparableError
+
+# Safe comparison - handles incomparable types gracefully
+result1 = Some(10).less_than(Some(20))          # Ok(True)
+result2 = Some(1+2j).less_than(Some(2+3j))     # Err(NotComparableError())
+
+# You can handle the comparison result safely
+match result2:
+    case Ok(is_less):
+        print(f"Comparison result: {is_less}")
+    case Err(error):
+        print(f"Cannot compare: {error}")
+
+# Unsafe comparison - faster but may raise exceptions
+try:
+    Some(10).less_than_unsafe(Some(20))         # True
+    Some(1+2j).less_than_unsafe(Some(2+3j))    # TypeError!
+except TypeError as e:
+    print(f"Comparison failed: {e}")
+```
+
+Additionally, `isos` provides explicit "unsafe" comparison methods:
 
 ```Python
 from isos import Some, Null, Ok, Err

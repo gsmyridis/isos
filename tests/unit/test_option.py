@@ -1,6 +1,15 @@
 import re
 import pytest
-from isos import Option, UnwrapError, Null, Some, UNWRAP_OPTION_MSG
+from isos import (
+    Option,
+    UnwrapError,
+    Null,
+    Some,
+    UNWRAP_OPTION_MSG,
+    Ok,
+    Err,
+    NotComparableError,
+)
 
 
 def test_eq():
@@ -13,33 +22,114 @@ def test_neq():
     assert Some(10) != Null()
 
 
-def test_less_than():
+def test_less_than_success():
+    assert Some(10).less_than(Some(20)) == Ok(True)
+    assert Null[int]().less_than(Some(20)) == Ok(True)
+
+    assert Some(20).less_than(Some(10)) == Ok(False)
+    assert Some(10).less_than(Some(10)) == Ok(False)
+    assert Null[int]().less_than(Null[int]()) == Ok(False)
+    assert Some(20).less_than(Null[int]()) == Ok(False)
+
+
+def test_less_than_fail():
+    assert Some(1 + 2j).less_than(Some(3 + 6j)) == Err(NotComparableError())
+
+
+def test_less_than_unsafe_success():
     assert Some(10).less_than_unsafe(Some(20))
-    assert Null().less_than_unsafe(Some(20))
+    assert Null[int]().less_than_unsafe(Some(20))
 
     assert not Some(20).less_than_unsafe(Some(10))
     assert not Some(10).less_than_unsafe(Some(10))
     assert not Null[int]().less_than_unsafe(Null[int]())
-    assert not Some(20).less_than_unsafe(Null())
+    assert not Some(20).less_than_unsafe(Null[int]())
 
 
-def test_less_or_equal():
+def test_less_than_unsafe_fail():
+    with pytest.raises(TypeError):
+        _ = Some(1 + 2j).less_than_unsafe(Some(3 + 6j))
+
+
+def test_less_or_equal_success():
+    assert Some(10).less_or_equal(Some(20)) == Ok(True)
+    assert Some(10).less_or_equal(Some(10)) == Ok(True)
+    assert Null[int]().less_or_equal(Some(20)) == Ok(True)
+    assert Null[int]().less_or_equal(Null[int]()) == Ok(True)
+
+
+def test_less_or_equal_fail():
+    assert Some(1 + 2j).less_or_equal(Some(10)) == Err(NotComparableError())
+
+
+def test_less_or_equal_unsafe_success():
     assert Some(10).less_or_equal_unsafe(Some(20))
     assert Some(10).less_or_equal_unsafe(Some(10))
     assert Null[int]().less_or_equal_unsafe(Some(20))
-    assert Null[int]().less_or_equal_unsafe(Null())
+    assert Null[int]().less_or_equal_unsafe(Null[int]())
 
 
-def test_greater_than():
+def test_less_or_equal_unsafe_fail():
+    with pytest.raises(TypeError):
+        _ = Some(1 + 2j).less_or_equal_unsafe(Some(10))
+
+
+def test_greater_than_unsafe_success():
     assert Some(10).greater_than_unsafe(Some(0))
-    assert Some(10).greater_than_unsafe(Null())
+    assert Some(10).greater_than_unsafe(Null[int]())
+
+    assert not Some(0).greater_than_unsafe(Some(10))
+    assert not Some(10).greater_than_unsafe(Some(10))
+    assert not Null[int]().greater_than_unsafe(Some(10))
+    assert not Null[int]().greater_than_unsafe(Null[int]())
 
 
-def test_greater_or_equal():
+def test_greater_than_unsafe_fail():
+    with pytest.raises(TypeError):
+        _ = Some(1 + 2j).greater_than_unsafe(Some(0))
+
+
+def test_greater_than_success():
+    assert Some(10).greater_than(Some(0)) == Ok(True)
+    assert Some(10).greater_than(Null[int]()) == Ok(True)
+
+    assert Some(0).greater_than(Some(10)) == Ok(False)
+    assert Some(10).greater_than(Some(10)) == Ok(False)
+    assert Null[int]().greater_than(Some(10)) == Ok(False)
+    assert Null[int]().greater_than(Null[int]()) == Ok(False)
+
+
+def test_greater_than_fail():
+    assert Some(10).greater_than(Some(1 + 2j)) == Err(NotComparableError())
+
+
+def test_greater_or_equal_unsafe_success():
     assert Some(10).greater_or_equal_unsafe(Some(0))
-    assert Some(10).greater_or_equal_unsafe(Null())
+    assert Some(10).greater_or_equal_unsafe(Null[int]())
     assert Some(10).greater_or_equal_unsafe(Some(10))
-    assert Null[int]().greater_or_equal_unsafe(Null())
+    assert Null[int]().greater_or_equal_unsafe(Null[int]())
+
+    assert not Some(0).greater_or_equal_unsafe(Some(10))
+    assert not Null[int]().greater_or_equal_unsafe(Some(10))
+
+
+def test_greater_or_equal_unsafe_fail():
+    with pytest.raises(TypeError):
+        _ = Some(1 + 2j).greater_or_equal_unsafe(Some(0))
+
+
+def test_greater_or_equal_success():
+    assert Some(10).greater_or_equal(Some(0)) == Ok(True)
+    assert Some(10).greater_or_equal(Null[int]()) == Ok(True)
+    assert Some(10).greater_or_equal(Some(10)) == Ok(True)
+    assert Null[int]().greater_or_equal(Null[int]()) == Ok(True)
+
+    assert Some(0).greater_or_equal(Some(10)) == Ok(False)
+    assert Null[int]().greater_or_equal(Some(10)) == Ok(False)
+
+
+def test_greater_or_equal_fail():
+    assert Some(1 + 2j).greater_or_equal(Some(0)) == Err(NotComparableError())
 
 
 def test_option_is_none():

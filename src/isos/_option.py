@@ -1,10 +1,13 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, TypeVar, Generic, override, final
+from typing import Callable, TypeVar, Generic, override, final, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ._result import Result
 
 from ._error import UNWRAP_OPTION_MSG, UnwrapError
-from ._util import Ord
+from ._util import Ord, NotComparableError
 
 T = TypeVar("T")
 W = TypeVar("W")
@@ -12,8 +15,64 @@ W = TypeVar("W")
 
 @dataclass
 class Option(ABC, Generic[T]):
+    def less_than(self, other: Option[W]) -> Result[bool]:
+        """
+        Return True if this Option is strictly less than `other`.
+        If the contained values (for `Some`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        from ._result import Ok, Err
+
+        try:
+            is_less = self.less_than_unsafe(other)
+            return Ok(is_less)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def less_or_equal(self, other: Option[W]) -> Result[bool]:
+        """
+        Return True if this Option is less than or equal to `other`.
+        If the contained values (for `Some`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        from ._result import Ok, Err
+
+        try:
+            is_less_or_equal = self.less_or_equal_unsafe(other)
+            return Ok(is_less_or_equal)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def greater_than(self, other: Option[W]) -> Result[bool]:
+        """
+        Return True if this Option is strictly greater than `other`.
+        If the contained values (for `Some`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        from ._result import Ok, Err
+
+        try:
+            is_greater = self.greater_than_unsafe(other)
+            return Ok(is_greater)
+        except Exception as _:
+            return Err(NotComparableError())
+
+    def greater_or_equal(self, other: Option[W]) -> Result[bool]:
+        """
+        Return True if this Option is greater than or equal to `other`.
+        If the contained values (for `Some`) are not mutually comparable via
+        the `<` operator, it returns a `NotComparable` error.
+        """
+        from ._result import Ok, Err
+
+        try:
+            is_greater_or_equal = self.greater_or_equal_unsafe(other)
+            return Ok(is_greater_or_equal)
+        except Exception as _:
+            return Err(NotComparableError())
+
     @abstractmethod
-    def less_than_unsafe(self, other: Option[T]) -> bool:
+    def less_than_unsafe(self, other: Option[W]) -> bool:
         """
         Return True if this Option is strictly less than `other`.
 
@@ -22,7 +81,7 @@ class Option(ABC, Generic[T]):
         """
         raise NotImplementedError("The method is not implemented")
 
-    def less_or_equal_unsafe(self, other: Option[T]) -> bool:
+    def less_or_equal_unsafe(self, other: Option[W]) -> bool:
         """
         Return True if this Option is less than or equal to `other`.
 
@@ -31,7 +90,7 @@ class Option(ABC, Generic[T]):
         """
         return self.less_than_unsafe(other) or self == other
 
-    def greater_than_unsafe(self, other: Option[T]) -> bool:
+    def greater_than_unsafe(self, other: Option[W]) -> bool:
         """
         Return True if this Option is strictly greater than `other`.
 
@@ -40,7 +99,7 @@ class Option(ABC, Generic[T]):
         """
         return not self.less_or_equal_unsafe(other)
 
-    def greater_or_equal_unsafe(self, other: Option[T]) -> bool:
+    def greater_or_equal_unsafe(self, other: Option[W]) -> bool:
         """
         Return True if this Option is greater or equal to `other`.
 
@@ -176,7 +235,7 @@ class Some(Option[T]):
     inner: T
 
     @override
-    def less_than_unsafe(self, other: Option[T]) -> bool:
+    def less_than_unsafe(self, other: Option[W]) -> bool:
         if not isinstance(other, Some) and not isinstance(other, Null):
             raise NotImplementedError(
                 "Comparison between Option and other types is not defined."
